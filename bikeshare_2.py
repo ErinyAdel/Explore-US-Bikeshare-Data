@@ -18,12 +18,12 @@ def get_filters():
     """
     print('Hello! Let\'s explore some US bikeshare data!')
 
-    city = str(input("Would you like to see data for Chicago, New York, or Washington?")).lower()
+    city = str(input("Would you like to see data for Chicago, New York City, or Washington?")).lower()
     print("Looks like you want to hear about " + city + "! If this is not true, restart the program now!")
 
     while city not in CITY_DATA.keys():
         print("Invalid city!")
-        city = str(input("Would you like to see data for Chicago, New York, or Washington?")).lower()
+        city = str(input("Would you like to see data for Chicago, New York City, or Washington?")).lower()
         print("Looks like you want to hear about " + city + "! If this is not true, restart the program now!")
 
     while True:
@@ -127,7 +127,7 @@ def time_stats(df):
     df['start_hour'] = df['Start Time'].dt.hour
     print("The most common start hour: {}".format(df['start_hour'].mode()[0]))
 
-    print("\nThis took %s seconds." % (time.time() - start_time))
+    print("\nThis took %s seconds." % round(time.time() - start_time))
     print('-'*40)
 
 
@@ -143,7 +143,7 @@ def station_stats(df):
     df['comb_start_end'] = df['Start Station'] + "," + df['End Station']
     print("The most frequent combination of start station and end station trip: {}".format(df['comb_start_end'].mode()[0]))
 
-    print("\nThis took %s seconds." % (time.time() - start_time))
+    print("\nThis took %s seconds." % round(time.time() - start_time))
     print('-'*40)
 
 
@@ -152,9 +152,9 @@ def trip_duration_stats(df):
 
     print('\nCalculating Trip Duration...\n')
     start_time = time.time()
-    print("The total travel time: {}".format(df['Trip Duration'].sum()))
-    print("The mean travel time: {}".format(df['Trip Duration'].mean()))
-    print("\nThis took %s seconds." % (time.time() - start_time))
+    print("The total travel time: {} seconds".format(round(df['Trip Duration'].sum())))
+    print("The mean travel time: {} seconds".format(round(df['Trip Duration'].mean())))
+    print("\nThis took %s seconds." % round(time.time() - start_time))
     print('-'*40)
 
 
@@ -169,12 +169,29 @@ def user_stats(df, city):
     if city != 'washington':
         print("Counts of user types: {}".format(df['Gender'].value_counts()))
 
-        print("The earliest year of birth: {}".format(df['Birth Year'].min()))
-        print("The most recent year of birth: {}".format(df['Birth Year'].max()))
-        print("The most common year of birth: {}".format(df['Birth Year'].mode()[0]))
+        print("The earliest year of birth: {}".format(df['Birth Year'].min().astype('int')))
+        print("The most recent year of birth: {}".format(df['Birth Year'].max().astype('int')))
+        print("The most common year of birth: {}".format(df['Birth Year'].mode()[0].astype('int')))
 
-    print("\nThis took %s seconds." % (time.time() - start_time))
+    print("\nThis took %s seconds." % round(time.time() - start_time))
     print('-'*40)
+
+
+def display_raw_data(df):
+    """ Your docstring here """
+    i = 0
+    raw = input("Would you like to see 5 more rows of the data?").lower()
+    pd.set_option('display.max_columns', 200)
+
+    while True:
+        if raw == 'no':
+            break
+        elif raw == 'yes':
+            print(df[i:i+5])
+            raw = input("Would you like to see 5 more rows of the data?").lower()
+            i += 5
+        else:
+            raw = input("\nYour input is invalid. Please enter only 'yes' or 'no'\n").lower()
 
 
 def main():
@@ -182,14 +199,18 @@ def main():
         city, month, day = get_filters()
         df = load_data(city, month, day)
 
+        display_raw_data(df)
+
         time_stats(df)
         station_stats(df)
         trip_duration_stats(df)
         user_stats(df, city)
 
         restart = input('\nWould you like to restart? Enter yes or no.\n')
-        if restart.lower() != 'yes':
+        if restart.lower() == 'no':
             break
+        elif restart.lower() != 'yes':
+            print("Invalid answer!")
 
 
 if __name__ == "__main__":
