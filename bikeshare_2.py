@@ -30,7 +30,7 @@ def get_filters():
         filter = str(input("Would you like to filter the data by month, day, or not at all? Type 'none' for no time filter."))
         if filter == "month" or filter == "day" or filter == "both" or filter == "none":
             months = ['all', 'january', 'february', 'march', 'april', 'may', 'june']
-            days = ['all', 'm', 'tu', 'w', 'th', 'f', 'sa', 'su']
+            days = ['all', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
             if filter == "month":
                 while True:
@@ -43,7 +43,7 @@ def get_filters():
 
             elif filter == "day":
                 while True:
-                    day = str(input("Which day? Please type a M, Tu, W, Th, F, Sa, Su, or All.")).lower()
+                    day = str(input("Which day? Please type a Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday, or All.")).lower()
                     month = None
                     if day in days:
                         break
@@ -58,7 +58,7 @@ def get_filters():
                     else:
                         print("Invalid input!")
                 while True:
-                    day = str(input("Which day? Please type a M, Tu, W, Th, F, Sa, Su, or All.")).lower()
+                    day = str(input("Which day? Please type a Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday, or All.")).lower()
                     if day in days:
                         break
                     else:
@@ -93,7 +93,7 @@ def load_data(city, month, day):
     df['Start Time'] = pd.to_datetime(df['Start Time'])
 
     df['month'] = df['Start Time'].dt.month
-    df['day_of_week'] = df['Start Time'].dt.day_name()
+    df['day_of_week'] = df['Start Time'].dt.day_name().str.lower()
 
     # Filter = Month
     if month != 'all' and day is None and month is not None:
@@ -103,13 +103,13 @@ def load_data(city, month, day):
 
     # Filter = Day
     if day != 'all' and month is None and day is not None:
-        df = df[df['day_of_week'] == day.title()]
+        df = df[df['day_of_week'] == day]
 
     # Filter = Both
     if month != 'all' and day != 'all' and month is not None and day is not None:
         months = ['january', 'february', 'march', 'april', 'may', 'june']
         month = months.index(month) + 1
-        df = df[df['month'] == month and df['day_of_week'] == day.title()]
+        df = df[(df['month'] == month) & (df['day_of_week'] == day)]
 
     return df
 
@@ -167,7 +167,7 @@ def user_stats(df, city):
     print("Counts of user types: {}".format(df['User Type'].value_counts()))
 
     if city != 'washington':
-        print("Counts of user types: {}".format(df['Gender'].value_counts()))
+        print("Counts of  gender: {}".format(df['Gender'].value_counts()))
 
         print("The earliest year of birth: {}".format(df['Birth Year'].min().astype('int')))
         print("The most recent year of birth: {}".format(df['Birth Year'].max().astype('int')))
@@ -180,37 +180,45 @@ def user_stats(df, city):
 def display_raw_data(df):
     """ Your docstring here """
     i = 0
-    raw = input("Would you like to see 5 more rows of the data?").lower()
+    raw = input("Would you like to see 5 rows of the data? 'yes' or 'no'.").lower()
     pd.set_option('display.max_columns', 200)
 
     while True:
         if raw == 'no':
             break
         elif raw == 'yes':
-            print(df[i:i+5])
-            raw = input("Would you like to see 5 more rows of the data?").lower()
+            print(df[:i+5])
+            raw = input("Would you like to see 5 more rows of the data? 'yes' or 'no'.").lower()
             i += 5
         else:
             raw = input("\nYour input is invalid. Please enter only 'yes' or 'no'\n").lower()
 
 
 def main():
+    city, month, day = get_filters()
+    df = load_data(city, month, day)
+
+    display_raw_data(df)
+
+    time_stats(df)
+    station_stats(df)
+    trip_duration_stats(df)
+    user_stats(df, city)
+
     while True:
-        city, month, day = get_filters()
-        df = load_data(city, month, day)
-
-        display_raw_data(df)
-
-        time_stats(df)
-        station_stats(df)
-        trip_duration_stats(df)
-        user_stats(df, city)
-
         restart = input('\nWould you like to restart? Enter yes or no.\n')
         if restart.lower() == 'no':
             break
         elif restart.lower() != 'yes':
             print("Invalid answer!")
+        elif restart.lower() == 'yes':
+            city, month, day = get_filters()
+            df = load_data(city, month, day)
+            display_raw_data(df)
+            time_stats(df)
+            station_stats(df)
+            trip_duration_stats(df)
+            user_stats(df, city)
 
 
 if __name__ == "__main__":
